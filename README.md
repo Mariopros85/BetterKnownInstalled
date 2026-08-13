@@ -1,20 +1,20 @@
 # BetterKnownInstalled (BKI)
 
-This Magisk/KernelSU/APatch module patches the `packages.xml` and cleans the `packages-warnings.xml` files to address DroidGuard's `UNKNOWN_INSTALLED` status. This helps resolve issues related to app installation and verification on devices with Play Services.
+This Magisk/KernelSU/APatch module patches `packages.xml` to address DroidGuard's `UNKNOWN_INSTALLED` status. This helps resolve issues related to app installation and verification on devices with Play Services.
 
 ---
 
 ## Description
 
-DroidGuard uses several attributes within the `packages.xml` file to track app installations. This module modifies these attributes to ensure that apps are recognized as properly installed, preventing the `UNKNOWN_INSTALLED` status and related problems. Specifically, it:
+DroidGuard uses several attributes within the `packages.xml` file to track app installations. This module modifies these attributes on **non-system** packages to ensure that apps are recognized as properly installed, preventing the `UNKNOWN_INSTALLED` status and related problems. Specifically, it:
 
 * Sets the **`installer`**, **`installInitiator`**, and **`installerUid`** attributes within each `<package>` tag in `packages.xml` to `com.android.vending` (the Google Play Store's package name identifier) and the corresponding user ID. This helps DroidGuard recognize the installation source as legitimate.
 * Removes the **`installOriginator`** attribute, as it can sometimes cause conflicts.
-* Removes the **`isOrphaned`** and **`installInitiatorUninstalled`** attributes if their values are set to `true`, as these can flag an app as incorrectly installed.
-* Changes the **`packageSource`** attribute to the constant value `2` (which represents **`PACKAGE_SOURCE_STORE`**).
-* Cleans the `packages-warnings.xml` file by setting its content to an empty `<packages />` tag. This file can sometimes contain warnings that contribute to the `playProtectVerdict` issues.
+* Removes the **`isOrphaned`** and **`installInitiatorUninstalled`** attributes if their values are set to `true` or `1`, as these can flag an app as incorrectly installed.
+* Changes the **`packageSource`** attribute to the constant value `2` (which represents **`PACKAGE_SOURCE_STORE`**), adding it when missing.
+* **Skips system packages** (`system="true"` or `system="1"`) to avoid incorrectly marking pre-installed OEM apps as Play Store installs.
 
-This module uses `abx2xml` and `xml2abx` binaries if not in your system by default (provided by [rhythmcache/android-xml-converter](https://github.com/rhythmcache/android-xml-converter)) to convert between binary and text XML formats, as `packages.xml` is typically in binary XML format. The module includes architecture-specific binaries for `aarch64`, `armv7aeabi`, `i686`, and `x86_64`.
+This module uses `abx2xml` and `xml2abx` binaries if not in your system by default (provided by [rhythmcache/android-xml-converter](https://github.com/rhythmcache/android-xml-converter)) to convert between binary and text XML formats, as `packages.xml` is typically in binary XML format. The module includes architecture-specific binaries for `aarch64`, `armv7aeabi`, `i686`, `x86_64`, and `riscv64`.
 
 **Important Warning:** The environment check verdict modification implemented by this module is a relatively new technique. Google's implementation of this check is not yet robust enough to guarantee that all your packages will be correctly identified. It's possible that some apps might still trigger Play Protect warnings or behave unexpectedly, even after using this module. This is due to limitations and potential inconsistencies in how Google verifies app installations. Use this module with caution and be aware of the potential for these issues.
 
@@ -31,13 +31,13 @@ This module uses `abx2xml` and `xml2abx` binaries if not in your system by defau
 
 ## Usage
 
-This module works automatically upon installation and reboot. No further user interaction is required. It modifies the necessary XML files during the boot process.
+This module works automatically upon installation and reboot. No further user interaction is required. It modifies the necessary XML file during the boot process.
 
 ---
 
 ## Backups
 
-The module creates backups of the original `packages.xml` and `packages-warnings.xml` files in `/data/adb/modules/BetterKnownInstalled/backup/` before making any changes. Up to five backups of each file type are kept, including the latest one. The backups are timestamped for easy identification.
+The module creates backups of the original `packages.xml` file in `/data/adb/modules/BetterKnownInstalled/backup/` before making any changes. Up to five backups are kept, including the latest one. The backups are timestamped for easy identification.
 
 ---
 
